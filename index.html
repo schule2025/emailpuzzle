@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Mail-Puzzle - Deutsch A1</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            max-width: 800px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2rem;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+
+        .instructions {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border-left: 4px solid #667eea;
+        }
+
+        .instructions h2 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.3rem;
+        }
+
+        .instructions p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .game-area {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .drag-area {
+            background: #f8f9fa;
+            border: 2px dashed #ccc;
+            border-radius: 10px;
+            padding: 20px;
+            min-height: 250px;
+        }
+
+        .drag-area h3 {
+            color: #333;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .drop-area {
+            background: #fff;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            min-height: 250px;
+        }
+
+        .drop-area.drag-over {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .email-part {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px 20px;
+            margin: 8px 0;
+            border-radius: 8px;
+            cursor: grab;
+            font-size: 1rem;
+            line-height: 1.4;
+            transition: all 0.3s ease;
+            user-select: none;
+            box-shadow: 0 4px 10px rgba(102, 126, 234, 0.3);
+        }
+
+        .email-part:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .email-part:active {
+            cursor: grabbing;
+            transform: scale(0.98);
+        }
+
+        .email-part.dragging {
+            opacity: 0.7;
+            transform: rotate(5deg);
+        }
+
+        .drop-slot {
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            margin: 8px 0;
+            padding: 15px;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+            font-style: italic;
+            transition: all 0.3s ease;
+        }
+
+        .drop-slot.has-content {
+            border: none;
+            padding: 0;
+        }
+
+        .drop-slot.drag-over {
+            border-color: #667eea;
+            background: #f0f4ff;
+            transform: scale(1.02);
+        }
+
+        .button-area {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .check-btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.1rem;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+        }
+
+        .check-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+        }
+
+        .reset-btn {
+            background: linear-gradient(135deg, #6c757d, #495057);
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            font-size: 1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            margin-left: 15px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
+        }
+
+        .reset-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(108, 117, 125, 0.4);
+        }
+
+        .feedback {
+            text-align: center;
+            padding: 20px;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-top: 20px;
+            transition: all 0.5s ease;
+            transform: translateY(10px);
+            opacity: 0;
+        }
+
+        .feedback.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .feedback.correct {
+            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+
+        .feedback.incorrect {
+            background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+        }
+
+        @media (max-width: 768px) {
+            .game-area {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+            }
+            
+            .check-btn {
+                padding: 12px 30px;
+                font-size: 1rem;
+            }
+            
+            .reset-btn {
+                display: block;
+                margin: 10px auto 0;
+            }
+        }
+
+        .progress {
+            background: #e9ecef;
+            height: 8px;
+            border-radius: 4px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            height: 100%;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📧 E-Mail-Puzzle</h1>
+        <p class="subtitle">Bringe die Teile der E-Mail in die richtige Reihenfolge!</p>
+        
+        <div class="instructions">
+            <h2>📋 Aufgabe</h2>
+            <p>Ziehe die vier Bausteine der E-Mail in die richtige Reihenfolge. Denke daran: Eine E-Mail beginnt mit der Anrede, dann kommt das Problem, die Lösung und zum Schluss der Gruß.</p>
+        </div>
+
+        <div class="progress">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+
+        <div class="game-area">
+            <div class="drag-area">
+                <h3>🧩 Bausteine</h3>
+                <div class="email-part" draggable="true" data-id="greeting">Hallo Chef,</div>
+                <div class="email-part" draggable="true" data-id="problem">der Drucker ist kaputt.</div>
+                <div class="email-part" draggable="true" data-id="solution">Der Kollege repariert ihn.</div>
+                <div class="email-part" draggable="true" data-id="closing">Viele Grüße, Ali</div>
+            </div>
+            
+            <div class="drop-area" id="dropArea">
+                <h3>📧 Deine E-Mail</h3>
+                <div class="drop-slot" data-position="0">1. Anrede hierhin ziehen</div>
+                <div class="drop-slot" data-position="1">2. Problem hierhin ziehen</div>
+                <div class="drop-slot" data-position="2">3. Lösung hierhin ziehen</div>
+                <div class="drop-slot" data-position="3">4. Gruß hierhin ziehen</div>
+            </div>
+        </div>
+
+        <div class="button-area">
+            <button class="check-btn" onclick="checkAnswer()">✅ Überprüfen</button>
+            <button class="reset-btn" onclick="resetGame()">🔄 Neu starten</button>
+        </div>
+
+        <div class="feedback" id="feedback"></div>
+    </div>
+
+    <script>
+        let draggedElement = null;
+        const correctOrder = ['greeting', 'problem', 'solution', 'closing'];
+        let currentOrder = [null, null, null, null];
+        let currentEmailIndex = 0;
+
+        // 20 different email examples for practice
+        const emailExamples = [
+            {
+                greeting: "Hallo Chef,",
+                problem: "der Drucker ist kaputt.",
+                solution: "Der Kollege repariert ihn.",
+                closing: "Viele Grüße, Ali"
+            },
+            {
+                greeting: "Liebe Kollegin,",
+                problem: "ich bin heute krank.",
+                solution: "Ich arbeite morgen wieder.",
+                closing: "Mit freundlichen Grüßen, Sarah"
+            },
+            {
+                greeting: "Hallo Team,",
+                problem: "der Computer funktioniert nicht.",
+                solution: "Die IT hilft uns heute.",
+                closing: "Beste Grüße, Max"
+            },
+            {
+                greeting: "Lieber Herr Müller,",
+                problem: "die Besprechung ist zu früh.",
+                solution: "Können wir um 10 Uhr beginnen?",
+                closing: "Herzliche Grüße, Anna"
+            },
+            {
+                greeting: "Hallo alle,",
+                problem: "der Aufzug ist defekt.",
+                solution: "Bitte benutzen Sie die Treppe.",
+                closing: "Danke, Lisa"
+            },
+            {
+                greeting: "Lieber Chef,",
+                problem: "ich habe einen Termin beim Arzt.",
+                solution: "Ich komme um 14 Uhr ins Büro.",
+                closing: "Viele Grüße, Tom"
+            },
+            {
+                greeting: "Hallo Frau Schmidt,",
+                problem: "die Heizung ist kaputt.",
+                solution: "Der Hausmeister kommt heute.",
+                closing: "Mit freundlichen Grüßen, Nina"
+            },
+            {
+                greeting: "Liebe Kollegen,",
+                problem: "das Internet ist langsam.",
+                solution: "Die Technik arbeitet daran.",
+                closing: "Beste Grüße, Paul"
+            },
+            {
+                greeting: "Hallo Herr Weber,",
+                problem: "mein Auto ist in der Werkstatt.",
+                solution: "Ich fahre heute mit dem Bus.",
+                closing: "Herzliche Grüße, Maria"
+            },
+            {
+                greeting: "Liebe Chefin,",
+                problem: "die Kaffeemaschine ist kaputt.",
+                solution: "Ich kaufe eine neue.",
+                closing: "Viele Grüße, Ben"
+            },
+            {
+                greeting: "Hallo Team,",
+                problem: "der Kopierer macht Probleme.",
+                solution: "Die Firma repariert ihn morgen.",
+                closing: "Danke, Eva"
+            },
+            {
+                greeting: "Lieber Kollege,",
+                problem: "ich finde die Datei nicht.",
+                solution: "Können Sie mir helfen?",
+                closing: "Mit freundlichen Grüßen, Jan"
+            },
+            {
+                greeting: "Hallo Chef,",
+                problem: "der Termin ist zu spät.",
+                solution: "Können wir früher beginnen?",
+                closing: "Beste Grüße, Lea"
+            },
+            {
+                greeting: "Liebe Frau Klein,",
+                problem: "das Telefon funktioniert nicht.",
+                solution: "Der Techniker kommt heute.",
+                closing: "Herzliche Grüße, Tim"
+            },
+            {
+                greeting: "Hallo alle,",
+                problem: "die Tür ist kaputt.",
+                solution: "Bitte benutzen Sie den anderen Eingang.",
+                closing: "Viele Grüße, Mia"
+            },
+            {
+                greeting: "Lieber Herr Brown,",
+                problem: "ich habe Kopfschmerzen.",
+                solution: "Ich gehe nach Hause.",
+                closing: "Mit freundlichen Grüßen, Felix"
+            },
+            {
+                greeting: "Hallo Kollegin,",
+                problem: "der Bildschirm ist schwarz.",
+                solution: "Die IT schaut heute vorbei.",
+                closing: "Danke, Julia"
+            },
+            {
+                greeting: "Liebe Chefin,",
+                problem: "mein Kind ist krank.",
+                solution: "Ich arbeite von zu Hause.",
+                closing: "Beste Grüße, Luis"
+            },
+            {
+                greeting: "Hallo Herr Fischer,",
+                problem: "die Klimaanlage ist zu kalt.",
+                solution: "Können Sie sie wärmer stellen?",
+                closing: "Herzliche Grüße, Zoe"
+            },
+            {
+                greeting: "Liebe Kollegen,",
+                problem: "der Parkplatz ist voll.",
+                solution: "Ich parke in der Nebenstraße.",
+                closing: "Viele Grüße, Oliver"
+            }
+        ];
+
+        function loadCurrentEmail() {
+            const currentEmail = emailExamples[currentEmailIndex];
+            const emailPartsContainer = document.getElementById('emailParts');
+            
+            // Create array with all parts and shuffle them
+            const parts = [
+                { type: 'greeting', text: currentEmail.greeting },
+                { type: 'problem', text: currentEmail.problem },
+                { type: 'solution', text: currentEmail.solution },
+                { type: 'closing', text: currentEmail.closing }
+            ];
+            
+            // Shuffle the parts randomly
+            for (let i = parts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [parts[i], parts[j]] = [parts[j], parts[i]];
+            }
+            
+            // Clear container and add shuffled parts
+            emailPartsContainer.innerHTML = '';
+            parts.forEach(part => {
+                const div = document.createElement('div');
+                div.className = 'email-part';
+                div.draggable = true;
+                div.dataset.id = part.type;
+                div.textContent = part.text;
+                emailPartsContainer.appendChild(div);
+            });
+            
+            // Update counter
+            document.querySelector('.subtitle').textContent = 
+                `E-Mail ${currentEmailIndex + 1} von ${emailExamples.length} - Bringe die Teile in die richtige Reihenfolge!`;
+        }
+
+        function nextEmail() {
+            currentEmailIndex = (currentEmailIndex + 1) % emailExamples.length;
+            resetGame();
+            loadCurrentEmail();
+            initDragAndDrop();
+        }
+
+        // Initialize drag and drop functionality
+        function initDragAndDrop() {
+            const emailParts = document.querySelectorAll('.email-part');
+            const dropSlots = document.querySelectorAll('.drop-slot');
+
+            emailParts.forEach(part => {
+                part.addEventListener('dragstart', handleDragStart);
+                part.addEventListener('dragend', handleDragEnd);
+            });
+
+            dropSlots.forEach(slot => {
+                slot.addEventListener('dragover', handleDragOver);
+                slot.addEventListener('drop', handleDrop);
+                slot.addEventListener('dragenter', handleDragEnter);
+                slot.addEventListener('dragleave', handleDragLeave);
+            });
+        }
+
+        function handleDragStart(e) {
+            draggedElement = this;
+            this.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        }
+
+        function handleDragEnd(e) {
+            this.classList.remove('dragging');
+            draggedElement = null;
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+        }
+
+        function handleDragEnter(e) {
+            e.preventDefault();
+            this.classList.add('drag-over');
+        }
+
+        function handleDragLeave(e) {
+            this.classList.remove('drag-over');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            this.classList.remove('drag-over');
+            
+            if (draggedElement && !this.classList.contains('has-content')) {
+                const position = parseInt(this.dataset.position);
+                const elementId = draggedElement.dataset.id;
+                
+                // Remove element from its current position
+                const currentPos = currentOrder.indexOf(elementId);
+                if (currentPos !== -1) {
+                    currentOrder[currentPos] = null;
+                    resetSlot(currentPos);
+                }
+                
+                // Place element in new position
+                currentOrder[position] = elementId;
+                this.innerHTML = '';
+                this.appendChild(draggedElement);
+                this.classList.add('has-content');
+                
+                updateProgress();
+                hideFeedback();
+            }
+        }
+
+        function resetSlot(position) {
+            const slot = document.querySelector(`[data-position="${position}"]`);
+            const labels = [
+                '1. Anrede hierhin ziehen',
+                '2. Problem hierhin ziehen', 
+                '3. Lösung hierhin ziehen',
+                '4. Gruß hierhin ziehen'
+            ];
+            slot.innerHTML = labels[position];
+            slot.classList.remove('has-content');
+        }
+
+        function updateProgress() {
+            const filledSlots = currentOrder.filter(slot => slot !== null).length;
+            const progressPercentage = (filledSlots / 4) * 100;
+            document.getElementById('progressBar').style.width = progressPercentage + '%';
+        }
+
+        function checkAnswer() {
+            let isCorrect = true;
+            
+            for (let i = 0; i < 4; i++) {
+                if (currentOrder[i] !== correctOrder[i]) {
+                    isCorrect = false;
+                    break;
+                }
+            }
+            
+            showFeedback(isCorrect);
+        }
+
+        function showFeedback(isCorrect) {
+            const feedback = document.getElementById('feedback');
+            feedback.classList.remove('show', 'correct', 'incorrect');
+            
+            setTimeout(() => {
+                if (isCorrect) {
+                    feedback.innerHTML = '✅ Richtig! Gut gemacht.';
+                    feedback.classList.add('correct');
+                } else {
+                    feedback.innerHTML = '❌ Noch nicht ganz. Versuche es erneut.';
+                    feedback.classList.add('incorrect');
+                }
+                feedback.classList.add('show');
+            }, 100);
+        }
+
+        function hideFeedback() {
+            const feedback = document.getElementById('feedback');
+            feedback.classList.remove('show');
+        }
+
+        function resetGame() {
+            // Reset current order
+            currentOrder = [null, null, null, null];
+            
+            // Reset all slots
+            for (let i = 0; i < 4; i++) {
+                resetSlot(i);
+            }
+            
+            // Move all elements back to drag area
+            const emailParts = document.querySelectorAll('.email-part');
+            const emailPartsContainer = document.getElementById('emailParts');
+            
+            emailParts.forEach(part => {
+                emailPartsContainer.appendChild(part);
+            });
+            
+            // Reset progress and feedback
+            updateProgress();
+            hideFeedback();
+        }
+
+        // Initialize the game when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            loadCurrentEmail();
+            initDragAndDrop();
+            updateProgress();
+        });
+    </script>
+</body>
+</html>
